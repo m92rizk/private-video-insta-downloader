@@ -1,0 +1,56 @@
+{
+  "manifest_version": 3,
+  "name": "private_insta_vd",
+  "version": "2.0",
+  "description": "A simple Chrome extension example.",
+  "icons":{
+    "48": "media/LB.png"
+  },
+  "action": {
+    "default_popup": "html/popup.html",
+    "default_icon": "media/LB.png"
+  },
+  "permissions": [
+    "activeTab",
+    "clipboardRead",
+    "webRequest",
+    "webRequestBlocking",
+    "tabs",
+    "storage",
+    "scripting",
+    "downloads"
+  ],
+  "host_permissions": [
+      "https://scontent.cdninstagram.com/*",
+      "https://instagram.flyn1-1.fna.fbcdn.net/*",
+      "*://*.instagram.com/*"
+  ],
+  "content_scripts": [
+  {
+    "matches": ["https://www.instagram.com/*"],
+    "js": [
+      "lib/ffmpeg.min.js",
+      "lib/ffmpeg-core.js",
+      "js/content.js"
+    ]
+  }
+  ],    
+  "background": {
+    "service_worker": "js/background.js"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "lib/*",
+        "html/*"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';",
+    "sandbox": "sandbox allow-scripts allow-forms allow-popups allow-modals; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval'; child-src 'self';"
+  }
+}
+  
