@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Meis</title>
+    <style>
+        html, body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: url('../media/beirut.jpg'); /* Replace with your image URL */
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            }
+      
+    
+
+        .center-button {
+            display: flex; /**/
+            padding: 10px 70px;
+            transform: translateX(0%); /* */ 
+            font-size: 20px;
+            background: linear-gradient(135deg, #fffb2b, #e5ff00, #ffbb00);
+            color: rgb(0, 0, 0);
+            border: none;
+            border-radius: 20px;
+            transition: transform 0.2s, box-shadow 0.2s; /* */
+            cursor: pointer; 
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+            font-weight: bold;
+            z-index: 1000;
+            font-size: 30px;
+        }
+        /* Hover Effect */
+        .center-button:hover {
+            transform: translate(0%, -3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            }
+            
+        /* Active Effect */
+        .center-button:active {
+            transform: translate(0%, 0) scale(0.98);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            }
+        
+        /* Position the mute button in the top-right corner */
+        #muteButton {
+            position: fixed; /* Fix the position relative to the viewport */
+            top: 10px;       /* Distance from the top edge of the window */
+            right: 10px;     /* Distance from the right edge of the window */
+            z-index: 1000;   /* Ensure the button is on top of other elements */
+            border: none;    /* Optional: remove the border for a cleaner look */
+            /*background: transparent; /* Optional: remove button background */
+            padding: 0;      /* Optional: remove any padding around the button */
+        }
+
+        #muteButton img {
+            width: 40px; /* Set the size of the icon */
+            height: 32px;
+        }
+    </style>
+</head>
+
+<body>
+    <audio id="myAudio" autoplay>
+        <source src="../media/music.weba" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    
+    <button id="muteButton">
+        <img id="muteIcon" src="../media/mute-icon.png" alt="Unmute">
+    </button>
+    
+    <button class="center-button" id="runFFmpeg">Download</button>
+
+    <script src="../js/mute_script.js"></script>
+
+    <script src="../lib/ffmpeg.min.js"></script>
+    <script src="../lib/ffmpeg-core.js"></script>
+    <script src="../js/content.js"></script>
+</body>

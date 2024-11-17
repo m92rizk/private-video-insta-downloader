@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8"> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Instagram Video Downloader</title>
+  <style>
+    body { 
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      height: auto; /* Allow the height to adjust */ 
+      margin: 0;
+      padding: 10px;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+      width: 250px;
+    }
+
+    .content {
+      padding: 0px;
+      margin-bottom: 10px; /* Adds space above the button */
+      position: relative; /* Ensures the button stays within content bounds */
+    }
+
+    .buttoncontainer {
+      display : flex;
+      justify-content: center;
+      align-items: center;
+      height: 5vh;
+      margin: 0 auto; /* This will center the container horizontally */ 
+      width: 100%; /* Adjust the width as needed */
+    }
+    #downloadVideo {
+      display: flex; /**/
+      /*position: absolute; /**/
+      /*bottom: 30px;              /* Aligns to the bottom of the container */
+      left: 50%;              /* Centers horizontally */
+      transform: translateX(0%); /* */ 
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: bold;
+      color: #fff;
+      background: linear-gradient(135deg, #6b0f1a, #b91372, #f953c6);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s; /* */
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+      z-index: 1000;
+    }
+    /* Hover Effect */
+    #downloadVideo:hover {
+      transform: translate(0%, -3px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    }
+    
+    /* Active Effect */
+    #downloadVideo:active {
+      transform: translate(0%, 0) scale(0.98);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    #progresscontainer {
+      display: none; /* Hide by default */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 5vh;
+      padding: 10px;
+    }
+    #progressDisplay { 
+      display: none; /* Hide by default */
+      /*position: absolute;/* */ 
+      bottom: 0px; /* Adjust this to position it above the button */ 
+      /*left: 50%; /**/
+      transform: translateX(0%); 
+      padding: 10px;
+      font-size: 14px;
+      background: hsl(128, 100%, 79%);
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px #09ff009f;
+      text-align: center;
+      z-index: 1000;
+    }
+
+    #spinner { 
+      display: none;
+      bottom: 1px;
+      border: 8px solid #f3f3f3; /* Light gray border */ 
+      border-top: 8px solid #3498db; /* Blue border on top */ 
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+    } @keyframes spin { 
+      0% { transform: rotate(0deg);} 
+      100% { transform: rotate(360deg);} 
+    }
+
+    h2 {
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+    #status {
+      margin-top: 10px;
+      color: #333;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="content">
+    <h2>How to Use:</h2>
+    <p>1. Click on "More options" on an Instagram post - then click "Go to post".</p>
+    <p>2. Click "Download" below, then it will get you to the video to be downloaded.</p>
+    <p>3. Click "Download" in yellow, Voila!</p>
+    <p>4. If something went wrong, try refreshing the instagram post page, then repeat step 2.</p>
+  </div>
+  
+  <div class="buttoncontainer">
+    <button id="downloadVideo">Download</button>
+  </div>
+
+  <div id="progresscontainer">
+    <div id="progressDisplay"></div>
+    <div id="spinner"></div>
+  </div>
+  
+
+  <p id="status"></p>
+  <script src="../js/popup.js"></script>
+  <script src="../lib/ffmpeg.min.js"></script>
+  <script src="../lib/ffmpeg-core.js"></script>
+</body>
+</html>
+
