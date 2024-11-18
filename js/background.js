@@ -15,42 +15,48 @@ let cleanedURLs = [];
 let cleanedUrl = '' ;
 let listener ; 
 let videoUrls = [];
-
+let isPageLoaded = false;
 // Initialize msg with a default value 
-let msg = ""; 
+let msg = "Loading .."; 
 // Retrieve the value from chrome.storage.local 
-chrome.storage.local.get("msg", (result) => { 
-  if (chrome.runtime.lastError) { 
-    console.error("Error retrieving msg:", chrome.runtime.lastError); 
-  } else { 
-    // Update msg if a value is found 
-    if (result.msg !== undefined) { 
-      msg = result.msg; 
-    } 
-  } // Now you can use msg safely 
-  console.log(msg); 
-});
+
 
 chrome.storage.local.set({ cleanedURLs: [] });
 
-// chrome.tabs.onActivated.addListener(function(activeInfo) {
-//   // This event fires when a tab is switched
-//   console.log("background js started");
-//   clearVideoList();
-// });
+
 
 const update_listen = chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
   // This event fires when a tab is refreshed or its URL is updated
   if (changeInfo.status === 'loading') {
     clearVideoList();
+    isPageLoaded = false; 
     chrome.webRequest.onCompleted.removeListener(update_listen);
     chrome.webRequest.onCompleted.removeListener(listener);
     chrome.webRequest.onCompleted.removeListener(message_listen);
+
     if (tab.url.startsWith('https://www.instagram.com/')) {
       console.log("cleaning storage ...");
-      chrome.storage.local.remove(['final_url1', 'final_url2']);
-      chrome.storage.local.remove('contentTabOpen');
-      chrome.storage.local.remove('msg');
+      chrome.storage.local.remove(['final_url1', 'final_url2'], function() { 
+        if (chrome.runtime.lastError) { 
+          console.error("Error removing final_url1 and final_url2:", chrome.runtime.lastError); 
+        } 
+      }); 
+      chrome.storage.local.remove('contentTabOpen', function() { 
+        if (chrome.runtime.lastError) { 
+          console.error("Error removing contentTabOpen:", chrome.runtime.lastError); 
+        } 
+      }); 
+      chrome.storage.local.get("msg", (result) => { 
+        if (chrome.runtime.lastError) { 
+          console.error("Error retrieving msg:", chrome.runtime.lastError); 
+        } else { 
+          // Update msg if a value is found 
+          if (result.msg !== undefined) { 
+            msg = result.msg; 
+          } 
+        } // Now you can use msg safely 
+        console.log(msg); 
+      });
     }
   }
 });
@@ -79,16 +85,38 @@ const message_listen = chrome.runtime.onMessage.addListener((request, sender, se
   }
 });
 
-const msg_listener = chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "downloadVideo") {
-    const interval = setInterval(() => {
-      chrome.runtime.sendMessage({action: "updateProgress", msg});
-      if (msg === "Found it") {
-        clearInterval(interval);
-      }
-    }, 1000);
-  }
+async function monitorProgress() { 
+  while (msg !== "Found it") { 
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for 1 second 
+    msg = checkProgress(); // Function to update the msg variable 
+    chrome.runtime.sendMessage({action: "updateProgress", msg}); 
+  } 
+  console.log("Found it, stopping the monitor."); 
+} 
+
+function checkProgress() { 
+  // Logic to check progress and update the msg variable 
+  if (postProcessDone) {
+    return "Found it"; 
+  // Update with your condition 
+  } 
+}
+
+// Listen for the page load event 
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => { 
+  if (changeInfo.status === 'complete') { 
+    isPageLoaded = true; 
+    console.log("Page fully loaded."); 
+  } 
 });
+
+const msg_listener = chrome.runtime.onMessage.addListener((request, sender, sendResponse) => { 
+  if (request.action === "downloadVideo" && isPageLoaded) {
+    monitorProgress(); 
+  } 
+});
+
+
 
 
 function clearVideoList() {
@@ -101,24 +129,6 @@ function clearVideoList() {
 }
 
 
-
-// chrome.tabs.onCreated.addListener((tab) => {
-//   console.log("New tab opened:", tab);
-
-//   // Check if the new tab has a `url` or `pendingUrl` that includes "instagram.com"
-//   const tabUrl = tab.pendingUrl || tab.url || "";
-  
-//   if (tabUrl.includes("https://www.instagram.com")) {
-//       console.log("Instagram tab opened.");
-
-//       // Add a delay before calling captureMediaUrlsInTab
-//       setTimeout(() => {
-//         captureMediaUrlsInTab(tab.id);
-//       }, 2000);  // 2000 ms = 2 seconds delay
-//   } else {
-//       console.log("Non-Instagram tab or no URL detected.");
-//   }
-// });
 
 function getLastSegment(url) {
   if (!url || typeof url !== 'string') {
@@ -177,7 +187,7 @@ function checkSimilarityAndTrack(url1, url2) {
   const segment2 = getLastSegment(url2);
   const similarity = similarityPercentage(segment1, segment2);
   
-  console.log(`URLs similarity: ${similarity}%`);
+  // console.log(`URLs similarity: ${similarity}%`);
   
   if (leastSimilarity === null || similarity < leastSimilarity) {
       leastSimilarity = similarity;
@@ -200,11 +210,11 @@ function captureMediaUrlsInTab(tabId) {
       if (msg === "Found it") {
         return
       }
-      // msg = "Inspecting links form Instagram";
+      msg = "Inspecting links form Instagram";
       sendmsg("Inspecting links form Instagram");
       // Inspect the response to see if it matches our video content criteria
       if ((details.url.includes("https://scontent.cdninstagram.com/") || details.url.includes("https://instagram.flyn1-1.fna.fbcdn.net")) && details.responseHeaders) {
-        // msg = "Fitlering videos by URLs";
+        msg = "Fitlering videos by URLs";
         sendmsg("Fitlering videos by URLs");
         console.log("started finding urls ..");
         let contentType = details.responseHeaders.find(
@@ -213,7 +223,7 @@ function captureMediaUrlsInTab(tabId) {
 
         // Check if the content is a video (video/mp4)
         if (contentType && contentType.value.includes("video/")) {
-          // msg = "Looking for the video links";
+          msg = "Looking for the video links";
           sendmsg("Looking for the video links");
           // Normalize the URL by removing the last part of the path
           let normalizedUrl = details.url;
@@ -274,7 +284,7 @@ function captureMediaUrlsInTab(tabId) {
                   const segment1 = getLastSegment(cleanedURLs[0]);
                   const segment2 = getLastSegment(cleanedUrl);
                   const similarity = similarityPercentage(segment1, segment2);
-                  console.log(`URLs similarity: ${similarity}%`);
+                  // console.log(`URLs similarity: ${similarity}%`);
                   
                   // Update least similar URL if this one has a lower similarity percentage
                   if (similarity < leastSimilarity) {
@@ -295,7 +305,7 @@ function captureMediaUrlsInTab(tabId) {
               console.log(`URLs are identical`);
               return
             }
-            // msg = "Trying to find video/audio URLs";
+            msg = "Trying to find video/audio URLs";
             sendmsg("Trying to find video/audio URLs");
           }
 
@@ -311,7 +321,8 @@ function captureMediaUrlsInTab(tabId) {
             console.log("FINAL URL 1 : ", cleanedURLs[0]);
             console.log("FINAL URL 2 : ", cleanedURLs[1]);
             // console.log("downloading the video ..");
-            // msg = "Found it";
+            openContentTab(cleanedURLs[0],cleanedURLs[1]);
+            msg = "Found it";
             sendmsg("Found it");
             chrome.storage.local.set({ msg: "Found it" }, () => { 
               if (chrome.runtime.lastError) { 
@@ -323,7 +334,6 @@ function captureMediaUrlsInTab(tabId) {
             // chrome.storage.local.set({ msg: "Found it" });      
             // removeOnCompletedListener();
             chrome.webRequest.onCompleted.removeListener(listener);
-            openContentTab(cleanedURLs[0],cleanedURLs[1]);
             if (!chrome.webRequest.onCompleted.hasListener(listener)) {
               console.log("Listener successfully removed.");
             } else {
@@ -358,13 +368,6 @@ function removeByteStartAndEndParameters(url) {
   }
 }
 
-
-// chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-//   if (request.action === "clearVideoList") {
-//     clearVideoList(); // Replace with the function you want to call
-//     sendResponse({ status: "started" });
-//   }
-// });
 
 
 
@@ -413,7 +416,7 @@ function openContentTab(url1, url2) {
             chrome.tabs.onRemoved.addListener((tabId) => {
               if (tabId === tab.id) {
                 chrome.storage.local.remove('contentTabOpen');
-                chrome.storage.local.remove('msg');
+                // chrome.storage.local.remove('msg');
                 
               }
             });
@@ -451,46 +454,3 @@ async function downloadVideo(url) {
 function sendmsg(msg) {
   chrome.runtime.sendMessage({action: "updateProgress", msg});
 }
-
-// document.addEventListener('DOMContentLoaded', () => { 
-//   const button = document.getElementById('downloadVideo'); 
-//   button.addEventListener('click', () => { 
-//     chrome.tabs.query({ 
-//       active: true, 
-//       currentWindow: true 
-//     }, 
-//     (tabs) => { 
-//       chrome.scripting.executeScript({ 
-//         target: { 
-//           tabId: tabs[0].id 
-//         }, 
-//         func: () => { 
-//           alert('Hello from the extension!'); 
-//         } 
-//       }); 
-//     }); 
-//   }); 
-// });
-
-
-// chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-//   if (request.action === "downloadVideo") {
-//       // Simulate a long-running script
-//       let progress = 0;
-//       const interval = setInterval(() => {
-//           progress += 10;
-//           if (progress <= 100) {
-//               chrome.runtime.sendMessage({action: "updateProgress", progress});
-//           } else {
-//               clearInterval(interval);
-//           }
-//       }, 1000);
-//   }
-// });
-
-
-// chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-//   if (request.action === "updateProgress") {
-//       alert(`Progress: ${request.progress}%`);
-//   }
-// });

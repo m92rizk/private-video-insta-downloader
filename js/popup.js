@@ -5,7 +5,13 @@ document.getElementById("downloadVideo").addEventListener("click", () => {
       chrome.tabs.reload(tabs[0].id); // Refresh the current tab
       console.log("Tab reloaded to capture video.");
     };
-
+    chrome.storage.local.set({ msg: "Loading .." }, function() { 
+      if (chrome.runtime.lastError) { 
+        console.error("Error removing msg:", chrome.runtime.lastError); 
+      } else { 
+        console.log("msg removed successfully from storage."); 
+      }
+    });
     chrome.runtime.sendMessage({ action: "clearVideoList" }, (response) => {
       console.log(response.status); // Should log "started" if successful
     });
@@ -39,16 +45,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "updateProgress") {
-      progresscontainer.style.display = 'block';
-      progressDisplay.style.display = 'block';
-      if (`${request.msg}` === "Looking for the video links") {
-        spinner.style.display = 'flex';
+      progresscontainer.style.display = 'flex';
+      if (`${request.msg}` === "Inspecting links form Instagram") {
+        spinner.style.display = 'block';
+        progressDisplay.style.display = 'block';
       } else {
         spinner.style.display = 'none';
+        progressDisplay.style.display = 'none';
+        progresscontainer.style.display = 'none';
       }
-      if (`${request.msg}` === "Fount it") {
-        spinner.style.display = 'none';
-      }
+
       progressDisplay.textContent = `${request.msg}`;
       document.body.style.height = 'auto'; // Adjust popup height dynamically
     }
