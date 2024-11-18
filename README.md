@@ -2,9 +2,11 @@ A chrome extension that helps downloading Instagram videos from private pages/ac
 You have to be logged in in chrome to get access to the followed accounts.
 
 installation:
-open chrome://extensions/
-enable Developer mode
-Click Load unpacked extension
-Navigate to the extension’s folder and click OK
+- Donwload .zip file
+- Unzip file
+- Open chrome://extensions/
+- Enable Developer mode
+- Click "Load unpacked" 
+- Navigate to the extension’s unzipped folder and click OK
 
-then follow instructions from the extension popup window!
+Then follow instructions from the extension popup window!
